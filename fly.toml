@@ -1,7 +1,5 @@
-# 1. اسم التطبيق
+# اسم التطبيق (بين علامات تنصيص)
 app = "Brillioxe"
-
-# 2. المنطقة
 primary_region = "ams"
 
 [build]
