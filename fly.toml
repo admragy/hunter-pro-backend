@@ -1,6 +1,6 @@
 # 1. اسم التطبيق (لازم يكون مميز وغير مكرر في العالم)
 # غير كلمة "hunter-pro-crm-x" لأي اسم يعجبك (مثلاً hunter-pro-raji-crm)
-app = Brillioxe
+app = "Brilliox"
 
 # 2. المكان (أمستردام قريبة من مصر وسريعة)
 primary_region = "ams"
