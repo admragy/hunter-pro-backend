@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hunter Pro CRM</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        :root { --primary: #1a1a2e; --secondary: #16213e; --accent: #e94560; --text: #ffffff; }
+        body { font-family: 'Cairo', sans-serif; background-color: var(--primary); color: var(--text); margin: 0; display: flex; flex-direction: column; height: 100vh; }
+        #loginScreen { display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100%; padding: 20px; text-align: center; }
+        input { width: 80%; padding: 15px; margin: 10px 0; border-radius: 10px; border: none; font-family: 'Cairo', sans-serif; }
+        button { background-color: var(--accent); color: white; padding: 15px 30px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; width: 80%; }
+        #appScreen { display: none; flex-direction: column; height: 100%; }
+        .header { background-color: var(--secondary); padding: 15px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.3); }
+        .wallet-badge { background: rgba(255, 255, 255, 0.1); padding: 5px 15px; border-radius: 20px; font-size: 14px; color: #ffd700; }
+        .chat-container { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; }
+        .msg { max-width: 75%; padding: 12px 18px; border-radius: 15px; line-height: 1.5; }
+        .msg.user { background-color: var(--accent); align-self: flex-start; border-bottom-right-radius: 2px; }
+        .msg.ai { background-color: var(--secondary); align-self: flex-end; border-bottom-left-radius: 2px; }
+        .input-area { padding: 15px; background-color: var(--secondary); display: flex; gap: 10px; }
+        #msgInput { flex: 1; margin: 0; }
+        #sendBtn { width: auto; padding: 0 20px; }
+        .loader { font-size: 12px; opacity: 0.7; text-align: center; display: none; }
+    </style>
+</head>
+<body>
+    <div id="loginScreen">
+        <h1>Hunter Pro 🚀</h1>
+        <p>مرحباً بك في نظام إدارة العملاء الذكي</p>
+        <input type="email" id="email" placeholder="البريد الإلكتروني">
+        <input type="text" id="fullname" placeholder="الاسم بالكامل">
+        <button onclick="registerUser()">دخول للنظام</button>
+        <p id="loginStatus" style="color: red; margin-top: 10px;"></p>
+    </div>
+
+    <div id="appScreen">
+        <div class="header">
+            <div style="font-weight: bold;">المحاور الذكي 🤖</div>
+            <div class="wallet-badge" id="walletDisplay">الرصيد: -- 🪙</div>
+        </div>
+        <div class="chat-container" id="chatContainer">
+            <div class="msg ai">أهلاً يا هندسة! 👋 أنا جاهز أساعدك.</div>
+        </div>
+        <div class="loader" id="loader">جاري الكتابة... ✍️</div>
+        <div class="input-area">
+            <input type="text" id="msgInput" placeholder="اكتب طلبك هنا...">
+            <button id="sendBtn" onclick="sendMessage()">➤</button>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = ""; // فاضي عشان يستخدم نفس السيرفر
+        let currentUserId = null;
+
+        async function registerUser() {
+            const email = document.getElementById('email').value;
+            const name = document.getElementById('fullname').value;
+            const status = document.getElementById('loginStatus');
+            if(!email || !name) { status.innerText = "يرجى ملء البيانات"; return; }
+            status.innerText = "جاري الاتصال..."; status.style.color = "yellow";
+            try {
+                const response = await fetch(`${API_URL}/users/`, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: email, full_name: name, password: "123" })
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    currentUserId = data.id;
+                    updateWallet(data.wallet_balance);
+                    showApp();
+                } else if (response.status === 400) {
+                    // لو مسجل قبل كدة، هنفترض إنه ID 1 للتسهيل (مؤقتاً)
+                    currentUserId = 1; 
+                    refreshWallet();
+                    showApp();
+                } else { status.innerText = "خطأ في السيرفر"; }
+            } catch (error) { status.innerText = "فشل الاتصال"; status.style.color = "red"; }
+        }
+
+        function showApp() {
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('appScreen').style.display = 'flex';
+        }
+
+        async function refreshWallet() {
+            try {
+                const res = await fetch(`${API_URL}/users/${currentUserId}`);
+                const data = await res.json();
+                updateWallet(data.wallet_balance);
+            } catch (e) {}
+        }
+
+        function updateWallet(balance) { document.getElementById('walletDisplay').innerText = `الرصيد: ${balance} 🪙`; }
+
+        async function sendMessage() {
+            const input = document.getElementById('msgInput');
+            const text = input.value;
+            const chatBox = document.getElementById('chatContainer');
+            if (!text) return;
+            chatBox.innerHTML += `<div class="msg user">${text}</div>`;
+            input.value = "";
+            document.getElementById('loader').style.display = 'block';
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            try {
+                const response = await fetch(`${API_URL}/chat/${currentUserId}`, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: text })
+                });
+                const data = await response.json();
+                document.getElementById('loader').style.display = 'none';
+                if (response.ok) {
+                    chatBox.innerHTML += `<div class="msg ai">${marked.parse(data.response)}</div>`;
+                    refreshWallet();
+                } else { chatBox.innerHTML += `<div class="msg ai" style="background:#5c1e1e">⚠️ ${data.detail}</div>`; }
+            } catch (error) {
+                document.getElementById('loader').style.display = 'none';
+                chatBox.innerHTML += `<div class="msg ai" style="background:#5c1e1e">خطأ في الاتصال</div>`;
+            }
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+    </script>
+</body>
+</html>
