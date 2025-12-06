@@ -3,10 +3,9 @@ uvicorn
 sqlalchemy
 psycopg2-binary
 python-dotenv
-google-generativeai>=0.7.2
+google-generativeai==0.7.2
 passlib[bcrypt]
 python-multipart
-pydantic>=2.0.0
+pydantic
 email-validator
 requests
-jinja2
