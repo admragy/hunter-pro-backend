@@ -2,125 +2,456 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hunter Pro CRM</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Hunter Pro AI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
-        :root { --primary: #1a1a2e; --secondary: #16213e; --accent: #e94560; --text: #ffffff; }
-        body { font-family: 'Cairo', sans-serif; background-color: var(--primary); color: var(--text); margin: 0; display: flex; flex-direction: column; height: 100vh; }
-        #loginScreen { display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100%; padding: 20px; text-align: center; }
-        input { width: 80%; padding: 15px; margin: 10px 0; border-radius: 10px; border: none; font-family: 'Cairo', sans-serif; }
-        button { background-color: var(--accent); color: white; padding: 15px 30px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; width: 80%; }
-        #appScreen { display: none; flex-direction: column; height: 100%; }
-        .header { background-color: var(--secondary); padding: 15px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.3); }
-        .wallet-badge { background: rgba(255, 255, 255, 0.1); padding: 5px 15px; border-radius: 20px; font-size: 14px; color: #ffd700; }
-        .chat-container { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; }
-        .msg { max-width: 75%; padding: 12px 18px; border-radius: 15px; line-height: 1.5; }
-        .msg.user { background-color: var(--accent); align-self: flex-start; border-bottom-right-radius: 2px; }
-        .msg.ai { background-color: var(--secondary); align-self: flex-end; border-bottom-left-radius: 2px; }
-        .input-area { padding: 15px; background-color: var(--secondary); display: flex; gap: 10px; }
-        #msgInput { flex: 1; margin: 0; }
-        #sendBtn { width: auto; padding: 0 20px; }
-        .loader { font-size: 12px; opacity: 0.7; text-align: center; display: none; }
+        /* 1. إعدادات الألوان والثيم */
+        :root {
+            --bg-dark: #0f172a;       /* كحلي غامق جداً للخلفية */
+            --bg-card: #1e293b;       /* لون الكروت */
+            --primary-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 100%); /* التدرج الموف والأزرق */
+            --user-bubble: #3b82f6;   /* لون رسالة اليوزر */
+            --ai-bubble: #334155;     /* لون رسالة الـ AI */
+            --text-main: #f8fafc;     /* أبيض ناصع */
+            --text-muted: #94a3b8;    /* رصاصي فاتح */
+            --accent: #22c55e;        /* أخضر للنجاح */
+        }
+
+        * { box-sizing: border-box; outline: none; -webkit-tap-highlight-color: transparent; }
+        
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            margin: 0;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* --- شاشة الدخول (Login) --- */
+        #loginScreen {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            padding: 30px;
+            background: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%);
+            text-align: center;
+        }
+
+        .logo-area {
+            font-size: 3rem;
+            font-weight: 800;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+
+        .login-card {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 400px;
+            border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .login-input {
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            color: white;
+            font-family: 'Cairo';
+            font-size: 16px;
+            transition: 0.3s;
+        }
+
+        .login-input:focus {
+            border-color: #a855f7;
+            box-shadow: 0 0 10px rgba(168, 85, 247, 0.2);
+        }
+
+        .btn-primary {
+            width: 100%;
+            padding: 15px;
+            margin-top: 15px;
+            border: none;
+            border-radius: 12px;
+            background: var(--primary-gradient);
+            color: white;
+            font-weight: bold;
+            font-size: 18px;
+            cursor: pointer;
+            transition: transform 0.2s;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+        }
+
+        .btn-primary:active { transform: scale(0.98); }
+
+        /* --- شاشة التطبيق (App) --- */
+        #appScreen {
+            display: none;
+            flex-direction: column;
+            height: 100%;
+            background: var(--bg-dark);
+        }
+
+        /* 1. الهيدر (Header) */
+        .app-header {
+            padding: 15px 20px;
+            background: rgba(30, 41, 59, 0.8);
+            backdrop-filter: blur(10px);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            z-index: 100;
+        }
+
+        .header-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-dot {
+            width: 10px; height: 10px;
+            background-color: var(--accent);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--accent);
+        }
+
+        .wallet-pill {
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            padding: 5px 15px;
+            border-radius: 50px;
+            font-size: 0.9rem;
+            color: #fbbf24;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-weight: bold;
+        }
+
+        /* 2. منطقة الشات (Chat Area) */
+        .chat-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            scroll-behavior: smooth;
+        }
+
+        .msg-row {
+            display: flex;
+            width: 100%;
+        }
+        
+        .msg-row.user { justify-content: flex-start; } /* عربي: اليوزر يمين */
+        .msg-row.ai { justify-content: flex-end; }   /* عربي: الـ AI شمال */
+
+        .bubble {
+            max-width: 80%;
+            padding: 12px 18px;
+            border-radius: 18px;
+            font-size: 15px;
+            line-height: 1.6;
+            position: relative;
+            word-wrap: break-word;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .bubble.user {
+            background: var(--primary-gradient);
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .bubble.ai {
+            background: var(--ai-bubble);
+            color: var(--text-main);
+            border-bottom-left-radius: 4px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        /* تنسيق الكود داخل الشات */
+        pre {
+            background: #000 !important;
+            padding: 10px;
+            border-radius: 8px;
+            overflow-x: auto;
+            direction: ltr; /* الكود إنجليزي */
+            text-align: left;
+        }
+
+        /* 3. منطقة الكتابة (Input Area) */
+        .input-wrapper {
+            padding: 15px;
+            background: var(--bg-card);
+            border-top: 1px solid rgba(255,255,255,0.05);
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .chat-input {
+            flex: 1;
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 12px 15px;
+            border-radius: 25px;
+            color: white;
+            font-family: 'Cairo';
+            font-size: 15px;
+            resize: none;
+            height: 50px; /* ثابت مبدئياً */
+        }
+        
+        .chat-input:focus { border-color: #6366f1; }
+
+        .send-btn {
+            width: 50px; height: 50px;
+            border-radius: 50%;
+            border: none;
+            background: var(--primary-gradient);
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(99, 102, 241, 0.3);
+            transition: 0.2s;
+        }
+
+        .send-btn:active { transform: scale(0.9); }
+        .send-btn svg { width: 20px; height: 20px; fill: white; transform: rotate(180deg); } /* سهم للعربي */
+
+        /* لودر التحميل */
+        .typing-indicator {
+            padding: 10px 20px;
+            background: var(--ai-bubble);
+            border-radius: 20px;
+            width: fit-content;
+            margin-right: auto; /* شمال عشان عربي */
+            display: none;
+            align-items: center;
+            gap: 5px;
+            font-size: 12px;
+            color: var(--text-muted);
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        .dot { width: 6px; height: 6px; background: #94a3b8; border-radius: 50%; animation: bounce 1.4s infinite ease-in-out; }
+        .dot:nth-child(1) { animation-delay: -0.32s; }
+        .dot:nth-child(2) { animation-delay: -0.16s; }
+        @keyframes bounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1); } }
+
     </style>
 </head>
 <body>
+
     <div id="loginScreen">
-        <h1>Hunter Pro 🚀</h1>
-        <p>مرحباً بك في نظام إدارة العملاء الذكي</p>
-        <input type="email" id="email" placeholder="البريد الإلكتروني">
-        <input type="text" id="fullname" placeholder="الاسم بالكامل">
-        <button onclick="registerUser()">دخول للنظام</button>
-        <p id="loginStatus" style="color: red; margin-top: 10px;"></p>
+        <div class="login-card">
+            <div class="logo-area">Hunter Pro</div>
+            <p style="color: var(--text-muted); margin-bottom: 20px;">نظام الذكاء الاصطناعي لإدارة الأعمال</p>
+            
+            <input type="email" id="email" class="login-input" placeholder="البريد الإلكتروني" value="">
+            <input type="text" id="fullname" class="login-input" placeholder="الاسم بالكامل" value="">
+            
+            <button class="btn-primary" onclick="handleLogin()">تسجيل الدخول 🚀</button>
+            <p id="loginStatus" style="color: #ef4444; margin-top: 15px; font-size: 14px;"></p>
+        </div>
     </div>
 
     <div id="appScreen">
-        <div class="header">
-            <div style="font-weight: bold;">المحاور الذكي 🤖</div>
-            <div class="wallet-badge" id="walletDisplay">الرصيد: -- 🪙</div>
+        <div class="app-header">
+            <div class="header-title">
+                <div class="status-dot"></div>
+                المحاور الذكي
+            </div>
+            <div class="wallet-pill" id="walletDisplay">
+                🪙 <span id="balanceNum">--</span>
+            </div>
         </div>
+
         <div class="chat-container" id="chatContainer">
-            <div class="msg ai">أهلاً يا هندسة! 👋 أنا جاهز أساعدك.</div>
+            <div class="msg-row ai">
+                <div class="bubble ai">
+                    أهلاً يا هندسة! 👋<br>
+                    أنا جاهز أساعدك في الكود، التسويق، أو إدارة العملاء.<br>
+                    <b>رصيدك الحالي يسمح ببدء العمل.</b>
+                </div>
+            </div>
         </div>
-        <div class="loader" id="loader">جاري الكتابة... ✍️</div>
-        <div class="input-area">
-            <input type="text" id="msgInput" placeholder="اكتب طلبك هنا...">
-            <button id="sendBtn" onclick="sendMessage()">➤</button>
+
+        <div class="typing-indicator" id="loader">
+            <div class="dot"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+        </div>
+
+        <div class="input-wrapper">
+            <input type="text" id="msgInput" class="chat-input" placeholder="اكتب رسالتك هنا..." autocomplete="off">
+            <button class="send-btn" onclick="sendMessage()">
+                <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+            </button>
         </div>
     </div>
 
     <script>
-        const API_URL = ""; // فاضي عشان يستخدم نفس السيرفر
+        // الرابط فاضي عشان هو نفس السيرفر
+        const API_URL = ""; 
         let currentUserId = null;
 
-        async function registerUser() {
+        // 1. التعامل مع الدخول
+        async function handleLogin() {
             const email = document.getElementById('email').value;
             const name = document.getElementById('fullname').value;
             const status = document.getElementById('loginStatus');
-            if(!email || !name) { status.innerText = "يرجى ملء البيانات"; return; }
-            status.innerText = "جاري الاتصال..."; status.style.color = "yellow";
+
+            if(!email || !name) {
+                status.innerText = "يرجى كتابة البيانات كاملة";
+                return;
+            }
+
+            status.innerText = "جاري الاتصال بالسيرفر...";
+            status.style.color = "#fbbf24"; // أصفر
+
             try {
                 const response = await fetch(`${API_URL}/users/`, {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email: email, full_name: name, password: "123" })
                 });
-                if (response.ok) {
-                    const data = await response.json();
-                    currentUserId = data.id;
-                    updateWallet(data.wallet_balance);
-                    showApp();
-                } else if (response.status === 400) {
-                    // لو مسجل قبل كدة، هنفترض إنه ID 1 للتسهيل (مؤقتاً)
-                    currentUserId = 1; 
-                    refreshWallet();
-                    showApp();
-                } else { status.innerText = "خطأ في السيرفر"; }
-            } catch (error) { status.innerText = "فشل الاتصال"; status.style.color = "red"; }
+
+                if (response.ok || response.status === 400) {
+                    if (response.ok) {
+                        const data = await response.json();
+                        currentUserId = data.id;
+                        updateBalance(data.wallet_balance);
+                    } else {
+                        // لو اليوزر موجود، هنفترض ID 1 (أو ممكن نعدل الباك اند يرجع اليوزر الموجود)
+                        // هنا بنعمل Fetch لليوزر رقم 1 كمثال سريع
+                        currentUserId = 1;
+                        await refreshWallet();
+                    }
+                    
+                    // انتقال للشاشة التالية
+                    document.getElementById('loginScreen').style.opacity = '0';
+                    setTimeout(() => {
+                        document.getElementById('loginScreen').style.display = 'none';
+                        document.getElementById('appScreen').style.display = 'flex';
+                    }, 300);
+                    
+                } else {
+                    status.innerText = "خطأ في السيرفر";
+                    status.style.color = "#ef4444";
+                }
+            } catch (error) {
+                status.innerText = "فشل الاتصال! تأكد من الإنترنت";
+                status.style.color = "#ef4444";
+            }
         }
 
-        function showApp() {
-            document.getElementById('loginScreen').style.display = 'none';
-            document.getElementById('appScreen').style.display = 'flex';
-        }
-
+        // 2. تحديث المحفظة
         async function refreshWallet() {
             try {
                 const res = await fetch(`${API_URL}/users/${currentUserId}`);
                 const data = await res.json();
-                updateWallet(data.wallet_balance);
-            } catch (e) {}
+                updateBalance(data.wallet_balance);
+            } catch (e) { console.error(e); }
         }
 
-        function updateWallet(balance) { document.getElementById('walletDisplay').innerText = `الرصيد: ${balance} 🪙`; }
+        function updateBalance(amount) {
+            document.getElementById('balanceNum').innerText = amount;
+        }
 
+        // 3. إرسال الرسالة
         async function sendMessage() {
             const input = document.getElementById('msgInput');
-            const text = input.value;
-            const chatBox = document.getElementById('chatContainer');
+            const text = input.value.trim();
+            const container = document.getElementById('chatContainer');
+            const loader = document.getElementById('loader');
+
             if (!text) return;
-            chatBox.innerHTML += `<div class="msg user">${text}</div>`;
+
+            // إضافة رسالة اليوزر
+            container.innerHTML += `
+                <div class="msg-row user">
+                    <div class="bubble user">${text}</div>
+                </div>`;
+            
             input.value = "";
-            document.getElementById('loader').style.display = 'block';
-            chatBox.scrollTop = chatBox.scrollHeight;
+            scrollToBottom();
+            
+            // إظهار اللودر
+            loader.style.display = 'flex';
+            scrollToBottom();
 
             try {
                 const response = await fetch(`${API_URL}/chat/${currentUserId}`, {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ message: text })
                 });
+
                 const data = await response.json();
-                document.getElementById('loader').style.display = 'none';
+                
+                // إخفاء اللودر
+                loader.style.display = 'none';
+
                 if (response.ok) {
-                    chatBox.innerHTML += `<div class="msg ai">${marked.parse(data.response)}</div>`;
-                    refreshWallet();
-                } else { chatBox.innerHTML += `<div class="msg ai" style="background:#5c1e1e">⚠️ ${data.detail}</div>`; }
+                    // تحويل الـ Markdown لـ HTML (عشان الكود يظهر صح)
+                    const htmlResponse = marked.parse(data.response);
+                    
+                    container.innerHTML += `
+                        <div class="msg-row ai">
+                            <div class="bubble ai">${htmlResponse}</div>
+                        </div>`;
+                    
+                    refreshWallet(); // تحديث الرصيد
+                } else {
+                    container.innerHTML += `
+                        <div class="msg-row ai">
+                            <div class="bubble ai" style="background: #ef4444; color: white;">⚠️ ${data.detail}</div>
+                        </div>`;
+                }
+
             } catch (error) {
-                document.getElementById('loader').style.display = 'none';
-                chatBox.innerHTML += `<div class="msg ai" style="background:#5c1e1e">خطأ في الاتصال</div>`;
+                loader.style.display = 'none';
+                container.innerHTML += `
+                    <div class="msg-row ai">
+                        <div class="bubble ai" style="background: #ef4444; color: white;">خطأ في الاتصال بالسيرفر</div>
+                    </div>`;
             }
-            chatBox.scrollTop = chatBox.scrollHeight;
+            scrollToBottom();
         }
+
+        function scrollToBottom() {
+            const container = document.getElementById('chatContainer');
+            container.scrollTop = container.scrollHeight;
+        }
+
+        // إرسال بالإنتر
+        document.getElementById('msgInput').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') sendMessage();
+        });
+
     </script>
 </body>
 </html>
