@@ -3,7 +3,7 @@ uvicorn
 sqlalchemy
 psycopg2-binary
 python-dotenv
-openai
+google-generativeai
 passlib[bcrypt]
 python-multipart
 pydantic
