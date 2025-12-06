@@ -2,337 +2,397 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Hunter Pro CRM</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hunter Pro Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        bgDark: '#0f172a',      // الخلفية الكحلي الغامقة
-                        cardDark: '#1e293b',    // لون الكروت والقوائم
-                        accentBlue: '#3b82f6',  // الأزرق
-                        accentGold: '#fbbf24',  // الذهبي (للنجوم والرصيد)
-                        textMain: '#e2e8f0',
-                        textSub: '#94a3b8'
-                    }
-                }
-            }
-        }
-    </script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap');
-        body { font-family: 'Cairo', sans-serif; background-color: #0f172a; color: #e2e8f0; -webkit-tap-highlight-color: transparent; }
+        :root {
+            --main-bg: #1a1a2e;       /* الخلفية الكحلي الغامقة */
+            --card-bg: #16213e;       /* لون الكروت والقوائم */
+            --accent: #e94560;        /* لون المميز (أحمر/وردي) */
+            --blue-accent: #0f3460;   /* الأزرق الغامق */
+            --text-color: #ffffff;
+        }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: var(--main-bg);
+            color: var(--text-color);
+            overflow-x: hidden;
+        }
+
+        /* القائمة الجانبية */
+        .sidebar {
+            background-color: var(--card-bg);
+            min-height: 100vh;
+            box-shadow: -2px 0 10px rgba(0,0,0,0.5);
+            z-index: 1000;
+        }
+
+        .logo-area {
+            padding: 20px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #4facfe; /* لون أزرق سماوي للوجو */
+        }
+
+        .nav-link {
+            color: rgba(255,255,255,0.7);
+            padding: 15px 20px;
+            margin: 5px 0;
+            border-radius: 0 10px 10px 0;
+            transition: 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            font-size: 1.1rem;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            background: linear-gradient(90deg, #4facfe 0%, rgba(79, 172, 254, 0.1) 100%);
+            color: white;
+            border-right: 4px solid #4facfe;
+        }
+
+        .nav-link i { width: 25px; text-align: center; }
+
+        /* الكروت في الرئيسية */
+        .stat-card {
+            background-color: var(--card-bg);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.05);
+            transition: transform 0.2s;
+        }
         
-        /* إخفاء السكرول بار */
-        ::-webkit-scrollbar { width: 0px; background: transparent; }
+        .stat-card:hover { transform: translateY(-5px); border-color: #4facfe; }
+
+        .stat-icon { font-size: 2rem; margin-bottom: 10px; color: #4facfe; }
+        .stat-num { font-size: 2.5rem; font-weight: bold; margin: 10px 0; }
+        .stat-label { color: rgba(255,255,255,0.5); font-size: 0.9rem; }
+
+        /* قائمة العملاء (زي الصورة) */
+        .client-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-right: 4px solid transparent;
+            position: relative;
+        }
         
-        /* تأثيرات */
-        .glass-header { background: rgba(30, 41, 59, 0.95); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(255,255,255,0.05); }
-        .nav-active { color: #3b82f6; border-right: 3px solid #3b82f6; background: rgba(59, 130, 246, 0.1); }
-        .nav-item { transition: all 0.2s; }
-        
-        /* إصلاح خانة الكتابة في الموبايل */
+        .client-card:hover { border-right-color: var(--accent); }
+
+        .client-name { font-weight: bold; font-size: 1.1rem; margin-bottom: 5px; }
+        .client-info { font-size: 0.9rem; color: rgba(255,255,255,0.6); margin-bottom: 3px; }
+        .stars { color: #f1c40f; font-size: 0.8rem; }
+        .badge-new { background-color: #0f3d3e; color: #10b981; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: bold; }
+
+        /* الشات */
+        .chat-container {
+            height: calc(100vh - 180px);
+            overflow-y: auto;
+            padding: 20px;
+            background-color: var(--main-bg);
+        }
+
+        .msg {
+            max-width: 80%;
+            padding: 12px 18px;
+            border-radius: 15px;
+            margin-bottom: 15px;
+            position: relative;
+            line-height: 1.6;
+        }
+
+        .msg-user {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: #1a1a2e;
+            font-weight: 600;
+            margin-right: auto; /* يمين */
+            border-bottom-right-radius: 2px;
+        }
+
+        .msg-ai {
+            background-color: var(--card-bg);
+            color: white;
+            margin-left: auto; /* يسار */
+            border-bottom-left-radius: 2px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        /* خانة الكتابة */
         .chat-input-area {
-            position: fixed; bottom: 0; left: 0; right: 0;
-            background: #1e293b; padding: 10px; z-index: 50;
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            background-color: var(--card-bg);
+            padding: 15px;
+            z-index: 1050; /* فوق الكل */
             border-top: 1px solid rgba(255,255,255,0.1);
         }
-        .pb-safe { padding-bottom: 80px; } /* مساحة عشان القائمة السفلية */
+        
+        /* زرار الموبايل */
+        .mobile-toggle { display: none; position: fixed; top: 15px; left: 15px; z-index: 1100; background: var(--card-bg); border: none; color: white; padding: 10px; border-radius: 10px; }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                position: fixed; top: 0; right: -280px; width: 280px; height: 100%; transition: 0.3s;
+            }
+            .sidebar.active { right: 0; }
+            .mobile-toggle { display: block; }
+            .content-area { padding-top: 60px; padding-bottom: 80px; }
+            .chat-input-area { left: 0; width: 100%; }
+        }
     </style>
 </head>
-<body class="h-screen overflow-hidden flex flex-col">
+<body>
 
-    <div id="loginScreen" class="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-bgDark bg-[url('https://www.transparenttextures.com/patterns/stardust.png')]">
-        <div class="w-20 h-20 bg-accentBlue rounded-2xl flex items-center justify-center mb-4 shadow-lg shadow-blue-500/40">
-            <i class="fa-solid fa-bullseye text-4xl text-white"></i>
-        </div>
-        <h1 class="text-3xl font-bold mb-1 text-white">Hunter Pro</h1>
-        <p class="text-textSub mb-8 text-sm">نظام إدارة علاقات العملاء الذكي</p>
-        
-        <div class="w-full max-w-xs space-y-4 px-4">
-            <input type="email" id="emailInput" placeholder="البريد الإلكتروني" class="w-full p-4 rounded-xl bg-cardDark border border-slate-700 focus:border-accentBlue outline-none text-white text-center">
-            <input type="text" id="nameInput" placeholder="الاسم" class="w-full p-4 rounded-xl bg-cardDark border border-slate-700 focus:border-accentBlue outline-none text-white text-center">
-            <button onclick="login()" class="w-full p-4 bg-gradient-to-r from-blue-600 to-blue-500 rounded-xl font-bold text-white shadow-lg active:scale-95 transition">دخول 🚀</button>
-            <p id="loginMsg" class="text-center text-red-400 text-xs h-4"></p>
-        </div>
-    </div>
+    <button class="mobile-toggle shadow" onclick="toggleSidebar()">
+        <i class="fa-solid fa-bars fa-lg"></i>
+    </button>
 
-    <div id="mainApp" class="flex-1 flex flex-col hidden w-full h-full">
-        
-        <header class="h-16 glass-header flex items-center justify-between px-4 z-40 shrink-0">
-            <div class="font-bold text-lg flex items-center gap-2 text-white">
-                <i class="fa-solid fa-bars text-xl cursor-pointer md:hidden" onclick="toggleSidebar()"></i>
-                <span>Hunter Pro</span>
-            </div>
-            <div class="flex items-center gap-3">
-                <div class="text-accentGold text-sm font-bold bg-slate-800/80 px-3 py-1.5 rounded-full border border-slate-700">
-                    🪙 <span id="walletBalance">--</span>
-                </div>
-                <div class="w-8 h-8 rounded-full bg-accentBlue flex items-center justify-center text-white font-bold text-xs" id="userAvatar">U</div>
-            </div>
-        </header>
-
-        <div class="flex flex-1 overflow-hidden relative">
+    <div class="container-fluid">
+        <div class="row">
             
-            <aside id="sidebar" class="w-64 bg-cardDark border-l border-slate-700 absolute md:relative z-30 h-full transform translate-x-full md:translate-x-0 transition-transform duration-300">
-                <div class="p-4 space-y-1">
-                    <button onclick="switchTab('dashboard')" class="nav-item nav-active w-full flex items-center gap-3 p-3 rounded-lg text-left">
-                        <i class="fa-solid fa-chart-pie w-5 text-center"></i> الرئيسية
-                    </button>
-                    <button onclick="switchTab('leads')" class="nav-item w-full flex items-center gap-3 p-3 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 text-left">
-                        <i class="fa-solid fa-users w-5 text-center"></i> العملاء
-                    </button>
-                    <button onclick="switchTab('chat')" class="nav-item w-full flex items-center gap-3 p-3 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 text-left">
-                        <i class="fa-solid fa-robot w-5 text-center"></i> المحاور الذكي
-                    </button>
-                    <button onclick="switchTab('campaigns')" class="nav-item w-full flex items-center gap-3 p-3 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 text-left">
-                        <i class="fa-brands fa-whatsapp w-5 text-center"></i> الحملات
-                    </button>
+            <div class="col-md-3 col-lg-2 sidebar p-0" id="sidebar">
+                <div class="logo-area">
+                    <i class="fa-solid fa-bullseye me-2"></i> Hunter Pro
                 </div>
-            </aside>
-            <div id="overlay" onclick="toggleSidebar()" class="fixed inset-0 bg-black/50 z-20 hidden md:hidden"></div>
+                <div class="d-flex flex-col mt-3">
+                    <a href="#" class="nav-link active" onclick="showTab('dashboard')">
+                        <i class="fa-solid fa-chart-line"></i> الرئيسية
+                    </a>
+                    <a href="#" class="nav-link" onclick="showTab('leads')">
+                        <i class="fa-solid fa-users"></i> العملاء
+                    </a>
+                    <a href="#" class="nav-link" onclick="showTab('chat')">
+                        <i class="fa-solid fa-robot"></i> المحاور الذكي
+                    </a>
+                    <a href="#" class="nav-link" onclick="showTab('campaigns')">
+                        <i class="fa-brands fa-whatsapp"></i> الحملات
+                    </a>
+                    <div class="mt-5 px-3">
+                        <div class="p-3 rounded bg-dark d-flex align-items-center gap-3">
+                            <div class="bg-primary rounded-circle text-white d-flex align-items-center justify-center" style="width:35px; height:35px;">A</div>
+                            <div>
+                                <div style="font-size:0.9rem">Admin</div>
+                                <div style="font-size:0.7rem; color:#f1c40f">🪙 <span id="balance">--</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-            <main class="flex-1 overflow-y-auto bg-bgDark relative w-full">
+            <div class="col-md-9 col-lg-10 content-area p-4">
                 
-                <div id="view-dashboard" class="p-4 space-y-4 pb-safe">
-                    <h2 class="text-xl font-bold mb-4">نظرة عامة</h2>
-                    <div class="grid grid-cols-2 gap-3">
-                        <div class="bg-cardDark p-4 rounded-xl border border-slate-700">
-                            <div class="text-accentBlue text-2xl mb-1"><i class="fa-solid fa-users"></i></div>
-                            <div class="text-2xl font-bold">27</div>
-                            <div class="text-xs text-textSub">إجمالي العملاء</div>
-                        </div>
-                        <div class="bg-cardDark p-4 rounded-xl border border-slate-700">
-                            <div class="text-accentGold text-2xl mb-1"><i class="fa-solid fa-star"></i></div>
-                            <div class="text-2xl font-bold">15</div>
-                            <div class="text-xs text-textSub">جودة ممتازة</div>
-                        </div>
-                    </div>
-                    <div class="bg-cardDark p-4 rounded-xl border border-slate-700 h-48 flex flex-col justify-center items-center text-textSub">
-                        <i class="fa-solid fa-chart-line text-4xl mb-2 opacity-50"></i>
-                        <span class="text-sm">تحليل الأداء (قريباً)</span>
+                <div id="loginSection" class="text-center mt-5">
+                    <h2 class="mb-4">مرحباً بك في Hunter Pro</h2>
+                    <div class="card p-4 mx-auto bg-dark border-0 shadow" style="max-width: 400px; background-color: var(--card-bg) !important;">
+                        <input type="email" id="email" class="form-control mb-3 bg-dark text-white border-secondary" placeholder="البريد الإلكتروني">
+                        <input type="text" id="name" class="form-control mb-3 bg-dark text-white border-secondary" placeholder="الاسم">
+                        <button onclick="login()" class="btn btn-primary w-100 fw-bold">دخول للنظام 🚀</button>
+                        <p id="loginErr" class="text-danger mt-2 small"></p>
                     </div>
                 </div>
 
-                <div id="view-leads" class="hidden p-4 space-y-3 pb-safe">
-                    <div class="flex justify-between items-center mb-2">
-                        <h2 class="text-xl font-bold">قائمة العملاء</h2>
-                        <button class="bg-accentBlue text-white px-3 py-1 rounded text-sm"><i class="fa-solid fa-plus"></i></button>
-                    </div>
-
-                    <div class="bg-cardDark p-4 rounded-xl border border-slate-700 relative">
-                        <button class="absolute top-4 left-4 text-slate-500"><i class="fa-solid fa-xmark"></i></button>
-                        <div class="flex items-start gap-3">
-                            <div class="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center text-accentBlue font-bold">
-                                <i class="fa-solid fa-user"></i>
-                            </div>
-                            <div class="flex-1">
-                                <div class="font-bold text-white text-sm mb-1">أنا شركة استثمارية - القاهرة</div>
-                                <div class="flex items-center gap-2 text-xs text-textSub mb-1">
-                                    <i class="fa-solid fa-mobile-screen"></i> 01045387332
-                                </div>
-                                <div class="flex items-center gap-2 text-xs text-textSub mb-1">
-                                    <i class="fa-solid fa-location-dot"></i> القاهرة
-                                </div>
-                                <div class="flex items-center gap-2 text-xs text-textSub">
-                                    <i class="fa-solid fa-chart-simple"></i> Hunt
-                                </div>
+                <div id="view-dashboard" class="d-none animate__animated animate__fadeIn">
+                    <h3 class="mb-4 fw-bold">لوحة المعلومات</h3>
+                    <div class="row">
+                        <div class="col-6 col-md-3">
+                            <div class="stat-card">
+                                <i class="fa-solid fa-users stat-icon"></i>
+                                <div class="stat-num">27</div>
+                                <div class="stat-label">إجمالي العملاء</div>
                             </div>
                         </div>
-                        <div class="flex justify-between items-center mt-3 pt-3 border-t border-slate-700">
-                            <span class="bg-[#0f3d3e] text-[#10b981] text-[10px] px-2 py-1 rounded font-bold">NEW</span>
-                            <div class="text-accentGold text-xs">
-                                <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+                        <div class="col-6 col-md-3">
+                            <div class="stat-card">
+                                <i class="fa-solid fa-star stat-icon text-warning"></i>
+                                <div class="stat-num">15</div>
+                                <div class="stat-label">جودة ممتازة</div>
                             </div>
                         </div>
-                    </div>
-
-                    <div class="bg-cardDark p-4 rounded-xl border border-slate-700 relative">
-                        <button class="absolute top-4 left-4 text-slate-500"><i class="fa-solid fa-xmark"></i></button>
-                        <div class="flex items-start gap-3">
-                            <div class="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center text-accentBlue font-bold">
-                                <i class="fa-solid fa-user"></i>
-                            </div>
-                            <div class="flex-1">
-                                <div class="font-bold text-white text-sm mb-1">عميل 12 - الجيزة</div>
-                                <div class="flex items-center gap-2 text-xs text-textSub mb-1">
-                                    <i class="fa-solid fa-mobile-screen"></i> 01010000000
-                                </div>
-                                <div class="flex items-center gap-2 text-xs text-textSub mb-1">
-                                    <i class="fa-solid fa-location-dot"></i> الجيزة
-                                </div>
-                                <div class="flex items-center gap-2 text-xs text-textSub">
-                                    <i class="fa-solid fa-chart-simple"></i> Manual
-                                </div>
+                        <div class="col-6 col-md-3">
+                            <div class="stat-card">
+                                <i class="fa-solid fa-chart-pie stat-icon text-success"></i>
+                                <div class="stat-num">42%</div>
+                                <div class="stat-label">معدل التحويل</div>
                             </div>
                         </div>
-                        <div class="flex justify-between items-center mt-3 pt-3 border-t border-slate-700">
-                            <span class="bg-[#0f3d3e] text-[#10b981] text-[10px] px-2 py-1 rounded font-bold">NEW</span>
-                            <div class="text-accentGold text-xs">
-                                <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-regular fa-star"></i>
+                        <div class="col-6 col-md-3">
+                            <div class="stat-card">
+                                <i class="fa-solid fa-wallet stat-icon text-warning"></i>
+                                <div class="stat-num" id="dashBalance">--</div>
+                                <div class="stat-label">رصيد التوكين</div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div id="view-chat" class="hidden h-full flex flex-col">
-                    <div id="chatBox" class="flex-1 overflow-y-auto p-4 space-y-4 pb-24">
-                        <div class="flex justify-start">
-                            <div class="bg-cardDark border border-slate-700 text-slate-200 p-3 rounded-2xl rounded-tr-none max-w-[85%] text-sm">
-                                أهلاً يا هندسة! 👋 أنا Hunter AI.<br>جاهز لكتابة الكود أو الإعلانات.
-                            </div>
-                        </div>
+                <div id="view-leads" class="d-none">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h3 class="fw-bold">قائمة العملاء</h3>
+                        <button class="btn btn-sm btn-primary">+ جديد</button>
                     </div>
                     
-                    <div class="chat-input-area">
-                        <div id="loader" class="text-xs text-accentBlue text-center mb-2 hidden"><i class="fa-solid fa-circle-notch fa-spin"></i> جاري الكتابة...</div>
-                        <div class="flex gap-2">
-                            <input type="text" id="msgInput" class="flex-1 bg-bgDark border border-slate-600 rounded-xl px-4 py-3 text-white focus:border-accentBlue outline-none" placeholder="اكتب رسالتك..." autocomplete="off">
-                            <button onclick="sendMessage()" class="bg-accentBlue text-white w-12 h-12 rounded-xl flex items-center justify-center shadow-lg active:scale-95">
-                                <i class="fa-solid fa-paper-plane transform rotate-180"></i>
-                            </button>
+                    <div class="client-card d-flex justify-content-between">
+                        <div class="d-flex gap-3">
+                            <div class="bg-dark rounded-circle d-flex align-items-center justify-center text-primary" style="width:50px; height:50px;">
+                                <i class="fa-solid fa-user"></i>
+                            </div>
+                            <div>
+                                <div class="client-name">أنا شركة استثمارية - القاهرة</div>
+                                <div class="client-info"><i class="fa-solid fa-phone me-1"></i> 01045387332</div>
+                                <div class="client-info"><i class="fa-solid fa-location-dot me-1"></i> القاهرة</div>
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <div class="badge-new mb-1">NEW</div>
+                            <div class="stars"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div>
+                        </div>
+                    </div>
+
+                    <div class="client-card d-flex justify-content-between">
+                        <div class="d-flex gap-3">
+                            <div class="bg-dark rounded-circle d-flex align-items-center justify-center text-primary" style="width:50px; height:50px;">
+                                <i class="fa-solid fa-user"></i>
+                            </div>
+                            <div>
+                                <div class="client-name">عميل 12 - الجيزة</div>
+                                <div class="client-info"><i class="fa-solid fa-phone me-1"></i> 01010000000</div>
+                                <div class="client-info"><i class="fa-solid fa-location-dot me-1"></i> الجيزة</div>
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <div class="badge-new mb-1 bg-primary bg-opacity-25 text-primary">MANUAL</div>
+                            <div class="stars"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-regular fa-star"></i></div>
                         </div>
                     </div>
                 </div>
-                
-                <div id="view-campaigns" class="hidden p-4 pb-safe flex items-center justify-center h-full text-slate-500">
-                    <div class="text-center">
-                        <i class="fa-brands fa-whatsapp text-4xl mb-2"></i>
-                        <p>قريباً.. إدارة حملات الواتساب</p>
+
+                <div id="view-chat" class="d-none">
+                    <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom border-secondary">
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="bg-success rounded-circle" style="width:10px; height:10px;"></div>
+                            <h5 class="m-0 fw-bold">المحاور الذكي</h5>
+                        </div>
+                        <button class="btn btn-sm btn-outline-danger" onclick="document.getElementById('chatBox').innerHTML=''"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+
+                    <div id="chatBox" class="chat-container">
+                        <div class="d-flex justify-content-start">
+                            <div class="msg msg-ai">
+                                أهلاً يا هندسة! 👋<br>أنا جاهز لأي مهمة برمجية أو تسويقية.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="chat-input-area d-flex gap-2">
+                        <input type="text" id="msgInput" class="form-control bg-dark text-white border-secondary" placeholder="اكتب رسالتك..." autocomplete="off">
+                        <button onclick="send()" class="btn btn-primary rounded-circle d-flex align-items-center justify-center" style="width:45px; height:45px;">
+                            <i class="fa-solid fa-paper-plane fa-lg" style="transform: rotate(180deg);"></i>
+                        </button>
                     </div>
                 </div>
 
-            </main>
+            </div>
         </div>
     </div>
 
     <script>
-        const API_URL = ""; 
-        let currentUserId = null;
+        const API = ""; 
+        let uid = null;
 
         // تبديل التبويبات
-        function switchTab(tabId) {
-            // إخفاء الكل
-            ['dashboard', 'leads', 'chat', 'campaigns'].forEach(id => {
-                document.getElementById(`view-${id}`).classList.add('hidden');
-            });
-            // إظهار المطلوب
-            document.getElementById(`view-${tabId}`).classList.remove('hidden');
+        function showTab(id) {
+            ['dashboard', 'leads', 'chat', 'campaigns'].forEach(t => document.getElementById(`view-${t}`).classList.add('d-none'));
+            document.getElementById(`view-${id}`).classList.remove('d-none');
             
-            // قفل القائمة في الموبايل
-            if(window.innerWidth < 768) toggleSidebar();
-
-            // تحديث ستايل الزرار
-            document.querySelectorAll('.nav-item').forEach(btn => {
-                btn.classList.remove('nav-active', 'text-white');
-                btn.classList.add('text-slate-400');
-            });
-            // (بسيط: التلوين هنا محتاج لوجيك اكتر بس ده يؤدي الغرض)
+            // الموبايل: اخفاء القائمة بعد الاختيار
+            document.getElementById('sidebar').classList.remove('active');
+            
+            // تفعيل الزرار
+            document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+            event.currentTarget.classList.add('active');
         }
 
         function toggleSidebar() {
-            const sb = document.getElementById('sidebar');
-            const ov = document.getElementById('overlay');
-            if (sb.classList.contains('translate-x-full')) {
-                sb.classList.remove('translate-x-full');
-                ov.classList.remove('hidden');
-            } else {
-                sb.classList.add('translate-x-full');
-                ov.classList.add('hidden');
-            }
+            document.getElementById('sidebar').classList.toggle('active');
         }
 
-        // تسجيل الدخول
+        // Login
         async function login() {
-            const email = document.getElementById('emailInput').value;
-            const name = document.getElementById('nameInput').value;
-            const msg = document.getElementById('loginMsg');
+            const em = document.getElementById('email').value;
+            const nm = document.getElementById('name').value;
+            const err = document.getElementById('loginErr');
             
-            if(!email || !name) { msg.innerText = "اكتب بياناتك"; return; }
-            msg.innerText = "جاري الاتصال..."; msg.style.color = "#fbbf24";
+            if(!em || !nm) { err.innerText = "اكتب البيانات"; return; }
+            err.innerText = "جاري الاتصال..."; err.style.color = "yellow";
 
             try {
-                const res = await fetch(`${API_URL}/users/`, {
-                    method: 'POST', headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({email, full_name: name, password: "123"})
+                const r = await fetch(`${API}/users/`, {
+                    method:'POST', headers:{'Content-Type':'application/json'},
+                    body:JSON.stringify({email:em, full_name:nm, password:"123"})
                 });
-
-                if(res.ok || res.status === 400) {
-                    const data = res.ok ? await res.json() : {id: 1, full_name: name, wallet_balance: 50};
-                    currentUserId = data.id || 1;
+                
+                if(r.ok || r.status===400) {
+                    const d = r.ok ? await r.json() : {id:1, wallet_balance:50};
+                    uid = d.id || 1;
+                    document.getElementById('balance').innerText = d.wallet_balance || 50;
+                    document.getElementById('dashBalance').innerText = d.wallet_balance || 50;
                     
-                    document.getElementById('userAvatar').innerText = (data.full_name || name)[0].toUpperCase();
-                    updateBalance(data.wallet_balance || 50);
-
-                    document.getElementById('loginScreen').classList.add('hidden');
-                    document.getElementById('mainApp').classList.remove('hidden');
-                } else {
-                    msg.innerText = "خطأ في السيرفر"; msg.style.color = "red";
-                }
-            } catch(e) {
-                msg.innerText = "فشل الاتصال"; msg.style.color = "red";
-            }
+                    document.getElementById('loginSection').classList.add('d-none');
+                    document.getElementById('view-dashboard').classList.remove('d-none');
+                } else { err.innerText = "خطأ في السيرفر"; }
+            } catch(e) { err.innerText = "فشل الاتصال"; }
         }
 
-        function updateBalance(num) {
-            document.getElementById('walletBalance').innerText = num;
-        }
-
-        // الشات
-        async function sendMessage() {
-            const input = document.getElementById('msgInput');
-            const text = input.value.trim();
+        // Chat
+        async function send() {
+            const inp = document.getElementById('msgInput');
+            const txt = inp.value.trim();
             const box = document.getElementById('chatBox');
             
-            if(!text) return;
+            if(!txt) return;
 
-            // رسالة اليوزر
-            box.innerHTML += `
-                <div class="flex justify-end">
-                    <div class="bg-accentBlue text-white p-3 rounded-2xl rounded-tl-none max-w-[85%] shadow-md text-sm">
-                        ${text}
-                    </div>
-                </div>`;
-            
-            input.value = "";
+            box.innerHTML += `<div class="d-flex justify-content-end"><div class="msg msg-user">${txt}</div></div>`;
+            inp.value = "";
             box.scrollTop = box.scrollHeight;
-            document.getElementById('loader').classList.remove('hidden');
 
             try {
-                const res = await fetch(`${API_URL}/chat/${currentUserId}`, {
-                    method: 'POST', headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({message: text})
+                const r = await fetch(`${API}/chat/${uid}`, {
+                    method:'POST', headers:{'Content-Type':'application/json'},
+                    body:JSON.stringify({message:txt})
                 });
-                const data = await res.json();
-                document.getElementById('loader').classList.add('hidden');
+                const d = await r.json();
 
-                if(res.ok) {
-                    const html = marked.parse(data.response);
-                    box.innerHTML += `
-                        <div class="flex justify-start">
-                            <div class="bg-cardDark border border-slate-700 text-slate-200 p-3 rounded-2xl rounded-tr-none max-w-[85%] shadow-md text-sm prose prose-invert">
-                                ${html}
-                            </div>
-                        </div>`;
-                    if(data.tokens_used) updateBalance(parseInt(document.getElementById('walletBalance').innerText) - data.tokens_used);
+                if(r.ok) {
+                    const htm = marked.parse(d.response);
+                    box.innerHTML += `<div class="d-flex justify-content-start"><div class="msg msg-ai">${htm}</div></div>`;
+                    if(d.tokens_used) {
+                        const bal = document.getElementById('balance');
+                        bal.innerText = parseInt(bal.innerText) - d.tokens_used;
+                        document.getElementById('dashBalance').innerText = bal.innerText;
+                    }
                 } else {
-                    box.innerHTML += `<div class="text-center text-red-400 text-xs my-2">⚠️ ${data.detail}</div>`;
+                    box.innerHTML += `<div class="text-center text-danger small my-2">⚠️ ${d.detail}</div>`;
                 }
             } catch(e) {
-                document.getElementById('loader').classList.add('hidden');
-                box.innerHTML += `<div class="text-center text-red-400 text-xs my-2">خطأ في الاتصال</div>`;
+                box.innerHTML += `<div class="text-center text-danger small my-2">خطأ اتصال</div>`;
             }
             box.scrollTop = box.scrollHeight;
         }
         
-        // Enter Key
-        document.getElementById('msgInput').addEventListener('keypress', (e) => { if(e.key==='Enter') sendMessage() });
-
+        document.getElementById('msgInput').addEventListener('keypress', (e)=>{if(e.key==='Enter') send()});
     </script>
 </body>
-</html>
+                                    </html>
+                
