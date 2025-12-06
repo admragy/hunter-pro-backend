@@ -3,211 +3,237 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hunter Pro Dashboard</title>
-    
+    <title>Hunter Pro CRM</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    
+
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     colors: {
-                        dark: '#0f172a',      // خلفية رئيسية
-                        card: '#1e293b',      // كروت
-                        primary: '#6366f1',   // أزرق/موف
-                        accent: '#a855f7',    // بنفسجي
-                        success: '#10b981'    // أخضر
+                        navy: {
+                            900: '#0f172a', // خلفية أساسية
+                            800: '#1e293b', // خلفية القائمة
+                            700: '#334155', // كروت
+                        },
+                        accent: {
+                            DEFAULT: '#3b82f6', // أزرق اللوجو
+                            glow: '#60a5fa'
+                        }
                     }
                 }
             }
         }
     </script>
     <style>
-        body { font-family: 'Tahoma', sans-serif; background-color: #0f172a; color: white; }
-        .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.05); }
-        .gradient-text { background: linear-gradient(to right, #6366f1, #a855f7); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .sidebar-link { transition: 0.3s; cursor: pointer; }
-        .sidebar-link:hover, .sidebar-link.active { background: linear-gradient(90deg, #6366f1 0%, rgba(99,102,241,0) 100%); border-right: 4px solid #a855f7; }
-        /* تحسين السكرول بار */
-        ::-webkit-scrollbar { width: 8px; }
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap');
+        body { font-family: 'Cairo', sans-serif; background-color: #0f172a; color: white; }
+        
+        /* تأثير الزجاج */
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        /* تحسين السكرول */
+        ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: #0f172a; }
-        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+
+        /* أنيميشن */
+        .fade-in { animation: fadeIn 0.3s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
-<body class="h-screen flex overflow-hidden">
+<body class="h-screen flex overflow-hidden text-slate-200">
 
-    <div id="loginScreen" class="fixed inset-0 z-50 flex items-center justify-center bg-dark bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]">
-        <div class="glass p-8 rounded-2xl w-full max-w-md text-center shadow-2xl border border-gray-700">
-            <h1 class="text-4xl font-bold mb-2 gradient-text">Hunter Pro</h1>
-            <p class="text-gray-400 mb-8">نظام إدارة العملاء الذكي</p>
-            
-            <div class="space-y-4">
-                <input type="email" id="emailInput" placeholder="البريد الإلكتروني" class="w-full p-4 bg-dark/50 border border-gray-600 rounded-xl focus:border-primary outline-none transition">
-                <input type="text" id="nameInput" placeholder="الاسم بالكامل" class="w-full p-4 bg-dark/50 border border-gray-600 rounded-xl focus:border-primary outline-none transition">
-                <button onclick="login()" class="w-full p-4 bg-gradient-to-r from-primary to-accent rounded-xl font-bold shadow-lg hover:scale-[1.02] transition">تسجيل الدخول 🚀</button>
-            </div>
-            <p id="loginMsg" class="mt-4 text-red-400 text-sm"></p>
+    <div id="loginScreen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#0f172a] bg-[url('https://www.transparenttextures.com/patterns/stardust.png')]">
+        <div class="w-24 h-24 bg-blue-600 rounded-full flex items-center justify-center mb-6 shadow-lg shadow-blue-500/50">
+            <i class="fa-solid fa-bullseye text-4xl text-white"></i>
+        </div>
+        <h1 class="text-3xl font-bold mb-2">Hunter Pro</h1>
+        <p class="text-slate-400 mb-8">سجل دخولك لبدء العمل</p>
+        
+        <div class="w-full max-w-sm space-y-4 px-6">
+            <input type="email" id="emailInput" placeholder="البريد الإلكتروني" class="w-full p-4 rounded-xl bg-slate-800 border border-slate-700 focus:border-blue-500 outline-none transition text-white">
+            <input type="text" id="nameInput" placeholder="الاسم" class="w-full p-4 rounded-xl bg-slate-800 border border-slate-700 focus:border-blue-500 outline-none transition text-white">
+            <button onclick="login()" class="w-full p-4 bg-gradient-to-r from-blue-600 to-blue-500 rounded-xl font-bold text-white shadow-lg hover:shadow-blue-500/30 transition transform active:scale-95">تسجيل الدخول</button>
+            <p id="loginMsg" class="text-center text-red-400 text-sm h-5"></p>
         </div>
     </div>
 
-    <div id="mainApp" class="flex w-full hidden">
+    <div id="mainApp" class="flex w-full h-full hidden fade-in">
         
-        <aside class="w-64 bg-card border-l border-gray-800 flex flex-col hidden md:flex">
-            <div class="p-6 text-center border-b border-gray-800">
-                <h2 class="text-2xl font-bold gradient-text">Hunter Pro</h2>
-                <div class="mt-2 text-xs text-gray-400">الإصدار 2.0</div>
+        <aside class="w-64 bg-[#1e293b] border-l border-slate-700 hidden md:flex flex-col">
+            <div class="p-6 flex items-center gap-3 border-b border-slate-700">
+                <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center"><i class="fa-solid fa-bullseye text-white"></i></div>
+                <div class="font-bold text-lg">Hunter Pro</div>
             </div>
-            
-            <nav class="flex-1 py-6 space-y-2">
-                <div onclick="showTab('dashboard')" class="sidebar-link active p-4 flex items-center gap-3 text-gray-300 hover:text-white">
+
+            <nav class="flex-1 p-4 space-y-2">
+                <button onclick="switchTab('dashboard')" class="nav-btn w-full flex items-center gap-3 p-3 rounded-xl bg-blue-600/10 text-blue-400 hover:bg-blue-600 hover:text-white transition">
                     <i class="fa-solid fa-chart-pie w-6"></i> الرئيسية
-                </div>
-                <div onclick="showTab('chat')" class="sidebar-link p-4 flex items-center gap-3 text-gray-300 hover:text-white">
-                    <i class="fa-solid fa-robot w-6 text-accent"></i> المحاور الذكي
-                </div>
-                <div onclick="showTab('campaigns')" class="sidebar-link p-4 flex items-center gap-3 text-gray-300 hover:text-white">
-                    <i class="fa-brands fa-whatsapp w-6 text-success"></i> الحملات
-                </div>
-                <div class="sidebar-link p-4 flex items-center gap-3 text-gray-300 hover:text-white opacity-50 cursor-not-allowed">
-                    <i class="fa-solid fa-users w-6"></i> العملاء (قريباً)
-                </div>
+                </button>
+                <button onclick="switchTab('leads')" class="nav-btn w-full flex items-center gap-3 p-3 rounded-xl text-slate-400 hover:bg-slate-700 hover:text-white transition">
+                    <i class="fa-solid fa-users w-6"></i> العملاء
+                </button>
+                <button onclick="switchTab('chat')" class="nav-btn w-full flex items-center gap-3 p-3 rounded-xl text-slate-400 hover:bg-slate-700 hover:text-white transition">
+                    <i class="fa-solid fa-robot w-6"></i> المحاور الذكي
+                </button>
+                <button class="nav-btn w-full flex items-center gap-3 p-3 rounded-xl text-slate-400 hover:bg-slate-700 hover:text-white transition">
+                    <i class="fa-solid fa-gear w-6"></i> الإعدادات
+                </button>
             </nav>
 
-            <div class="p-4 border-t border-gray-800">
-                <div class="glass p-3 rounded-xl flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center font-bold" id="userAvatar">A</div>
-                    <div>
-                        <div class="text-sm font-bold" id="userNameDisplay">Admin</div>
-                        <div class="text-xs text-yellow-400">🪙 <span id="walletBalance">--</span> نقطة</div>
+            <div class="p-4 border-t border-slate-700">
+                <div class="flex items-center gap-3 p-2 rounded-xl bg-slate-800">
+                    <div class="w-10 h-10 rounded-full bg-slate-600 flex items-center justify-center" id="userInitial">U</div>
+                    <div class="overflow-hidden">
+                        <div class="font-bold text-sm truncate" id="userNameDisplay">User</div>
+                        <div class="text-xs text-yellow-400 font-bold">🪙 <span id="walletBalance">--</span></div>
                     </div>
                 </div>
             </div>
         </aside>
 
-        <main class="flex-1 flex flex-col bg-dark relative">
+        <main class="flex-1 flex flex-col relative bg-[#0f172a]">
             
-            <header class="md:hidden p-4 bg-card flex justify-between items-center shadow-lg">
-                <div class="font-bold text-lg">Hunter Pro</div>
-                <div class="text-yellow-400 text-sm font-bold">🪙 <span id="mobileBalance">--</span></div>
-                <button onclick="toggleMobileMenu()" class="text-white"><i class="fa-solid fa-bars text-xl"></i></button>
+            <header class="md:hidden h-16 bg-[#1e293b] flex items-center justify-between px-4 border-b border-slate-700">
+                <div class="font-bold text-lg flex items-center gap-2">
+                    <i class="fa-solid fa-bullseye text-blue-500"></i> Hunter
+                </div>
+                <div class="text-yellow-400 text-sm font-bold bg-slate-800 px-3 py-1 rounded-full">🪙 <span id="mobileBalance">--</span></div>
             </header>
 
-            <div id="view-dashboard" class="p-6 overflow-y-auto h-full space-y-6">
-                <h2 class="text-2xl font-bold mb-4">نظرة عامة</h2>
+            <div id="view-dashboard" class="tab-content flex-1 overflow-y-auto p-4 md:p-8 space-y-6">
+                <h2 class="text-2xl font-bold mb-4">لوحة التحكم</h2>
                 
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div class="glass p-6 rounded-2xl border-r-4 border-primary">
-                        <div class="text-gray-400 mb-2">إجمالي العملاء</div>
-                        <div class="text-3xl font-bold">1,250</div>
-                        <div class="text-xs text-green-400 mt-2">↑ 12% هذا الشهر</div>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div class="glass-panel p-5 rounded-2xl">
+                        <div class="text-slate-400 text-sm mb-1">إجمالي العملاء</div>
+                        <div class="text-2xl font-bold">27</div>
                     </div>
-                    <div class="glass p-6 rounded-2xl border-r-4 border-accent">
-                        <div class="text-gray-400 mb-2">رصيد المحفظة</div>
-                        <div class="text-3xl font-bold text-yellow-400" id="dashBalance">--</div>
-                        <div class="text-xs text-gray-400 mt-2">توكين متبقي</div>
+                    <div class="glass-panel p-5 rounded-2xl">
+                        <div class="text-slate-400 text-sm mb-1">عملاء جدد</div>
+                        <div class="text-2xl font-bold text-blue-400">12</div>
                     </div>
-                    <div class="glass p-6 rounded-2xl border-r-4 border-success">
-                        <div class="text-gray-400 mb-2">حملات نشطة</div>
-                        <div class="text-3xl font-bold">3</div>
-                        <div class="text-xs text-gray-400 mt-2">عبر الواتساب</div>
+                    <div class="glass-panel p-5 rounded-2xl">
+                        <div class="text-slate-400 text-sm mb-1">جودة ممتازة</div>
+                        <div class="text-2xl font-bold text-yellow-400">15</div>
+                    </div>
+                    <div class="glass-panel p-5 rounded-2xl">
+                        <div class="text-slate-400 text-sm mb-1">معدل التحويل</div>
+                        <div class="text-2xl font-bold text-green-400">42%</div>
                     </div>
                 </div>
 
-                <div class="glass p-6 rounded-2xl">
-                    <h3 class="font-bold mb-4">تحليل الأداء (أسبوعي)</h3>
-                    <canvas id="myChart" height="100"></canvas>
+                <div class="glass-panel p-6 rounded-2xl h-64 flex items-center justify-center text-slate-500 bg-slate-800/50">
+                    [ مساحة للرسم البياني التفاعلي ]
                 </div>
             </div>
 
-            <div id="view-chat" class="hidden flex flex-col h-full relative">
-                <div class="p-4 border-b border-gray-800 bg-card/50 backdrop-blur flex justify-between items-center">
-                    <div>
-                        <h3 class="font-bold text-lg"><i class="fa-solid fa-brain text-accent ml-2"></i> المساعد الذكي</h3>
-                        <p class="text-xs text-gray-400">مدعوم بواسطة Google Gemini</p>
-                    </div>
-                    <button onclick="clearChat()" class="text-xs bg-red-500/20 text-red-400 px-3 py-1 rounded-lg hover:bg-red-500/40">مسح المحادثة</button>
+            <div id="view-leads" class="tab-content flex-1 overflow-y-auto p-4 md:p-8 hidden">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold">قائمة العملاء</h2>
+                    <button class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-500">+ عميل جديد</button>
                 </div>
 
-                <div id="chatContainer" class="flex-1 overflow-y-auto p-4 space-y-4">
+                <div class="space-y-3" id="leadsContainer">
+                    <div class="bg-[#1e293b] p-4 rounded-xl border border-slate-700 flex justify-between items-start">
+                        <div class="flex gap-4">
+                            <div class="w-12 h-12 bg-slate-700 rounded-full flex items-center justify-center text-blue-400">
+                                <i class="fa-solid fa-user"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-white">أنا شركة استثمارية - القاهرة</h3>
+                                <div class="text-slate-400 text-sm mt-1"><i class="fa-solid fa-phone text-xs ml-1"></i> 01045387332</div>
+                                <div class="text-slate-400 text-sm"><i class="fa-solid fa-location-dot text-xs ml-1"></i> القاهرة</div>
+                            </div>
+                        </div>
+                        <div class="flex flex-col items-end gap-2">
+                            <div class="flex text-yellow-400 text-xs">
+                                <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+                            </div>
+                            <span class="bg-green-500/20 text-green-400 text-xs px-2 py-1 rounded">NEW</span>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-[#1e293b] p-4 rounded-xl border border-slate-700 flex justify-between items-start">
+                        <div class="flex gap-4">
+                            <div class="w-12 h-12 bg-slate-700 rounded-full flex items-center justify-center text-blue-400">
+                                <i class="fa-solid fa-user"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-white">عميل 12 - الجيزة</h3>
+                                <div class="text-slate-400 text-sm mt-1"><i class="fa-solid fa-phone text-xs ml-1"></i> 01010000000</div>
+                                <div class="text-slate-400 text-sm"><i class="fa-solid fa-location-dot text-xs ml-1"></i> الجيزة</div>
+                            </div>
+                        </div>
+                        <div class="flex flex-col items-end gap-2">
+                            <div class="flex text-yellow-400 text-xs">
+                                <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-regular fa-star"></i>
+                            </div>
+                            <span class="bg-blue-500/20 text-blue-400 text-xs px-2 py-1 rounded">Manual</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="view-chat" class="tab-content flex-1 flex flex-col hidden h-full">
+                <div class="p-4 border-b border-slate-700 bg-[#1e293b]/50 backdrop-blur flex justify-between items-center">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 flex items-center justify-center">
+                            <i class="fa-solid fa-robot text-white"></i>
+                        </div>
+                        <div>
+                            <div class="font-bold">المحاور الذكي</div>
+                            <div class="text-xs text-green-400">● متصل الآن</div>
+                        </div>
+                    </div>
+                    <button class="text-slate-400 hover:text-red-400" onclick="document.getElementById('chatBox').innerHTML=''"><i class="fa-solid fa-trash"></i></button>
+                </div>
+
+                <div id="chatBox" class="flex-1 overflow-y-auto p-4 space-y-4 bg-[#0f172a]">
                     <div class="flex justify-start">
-                        <div class="bg-card border border-gray-700 p-4 rounded-2xl rounded-tl-none max-w-[85%] text-gray-200">
-                            أهلاً بك! 👋 أنا Hunter AI.<br>
-                            اطلب مني كتابة كود، تصميم إعلانات، أو تحليل بياناتك.
+                        <div class="bg-slate-800 text-slate-200 p-4 rounded-2xl rounded-tr-none max-w-[85%] border border-slate-700">
+                            أهلاً يا هندسة! 👋 أنا Hunter AI.<br>جاهز أساعدك في أي وقت.
                         </div>
                     </div>
                 </div>
 
-                <div id="loader" class="hidden p-4 text-center text-sm text-gray-400">
-                    <i class="fa-solid fa-circle-notch fa-spin text-primary"></i> جاري الكتابة...
-                </div>
-
-                <div class="p-4 bg-card border-t border-gray-800">
+                <div class="p-4 bg-[#1e293b] border-t border-slate-700">
                     <div class="flex gap-2 relative">
-                        <input type="text" id="msgInput" class="flex-1 bg-dark border border-gray-700 rounded-xl px-4 py-3 focus:border-primary outline-none" placeholder="اكتب طلبك هنا..." autocomplete="off">
-                        <button onclick="sendMessage()" class="bg-gradient-to-r from-primary to-accent text-white px-6 rounded-xl font-bold shadow-lg hover:shadow-primary/50 transition">
-                            <i class="fa-solid fa-paper-plane"></i>
-                        </button>
+                        <input type="text" id="msgInput" class="w-full bg-[#0f172a] border border-slate-700 rounded-xl px-4 py-3 focus:border-blue-500 outline-none text-white" placeholder="اكتب رسالتك..." autocomplete="off">
+                        <button onclick="sendMessage()" class="bg-blue-600 hover:bg-blue-500 text-white w-12 h-12 rounded-xl flex items-center justify-center shadow-lg transition">
+                            <i class="fa-solid fa-paper-plane transform rotate-180"></i> </button>
                     </div>
+                    <div id="loading" class="text-center text-xs text-slate-500 mt-2 hidden">جاري الكتابة...</div>
                 </div>
             </div>
 
-            <div id="view-campaigns" class="hidden p-6 h-full overflow-y-auto">
-                <h2 class="text-2xl font-bold mb-6">إنشاء حملة جديدة</h2>
-                <div class="glass p-6 rounded-2xl max-w-2xl mx-auto space-y-4">
-                    <div>
-                        <label class="block text-gray-400 mb-2">اسم الحملة</label>
-                        <input type="text" class="w-full bg-dark border border-gray-700 rounded-lg p-3 outline-none focus:border-success">
-                    </div>
-                    <div>
-                        <label class="block text-gray-400 mb-2">تفاصيل العرض</label>
-                        <textarea class="w-full bg-dark border border-gray-700 rounded-lg p-3 h-32 outline-none focus:border-success" placeholder="مثلاً: خصم 20% على العقارات في التجمع..."></textarea>
-                    </div>
-                    <button class="w-full bg-green-600 hover:bg-green-500 text-white p-4 rounded-xl font-bold transition">
-                        <i class="fa-brands fa-whatsapp ml-2"></i> توليد وإرسال الحملة (AI)
-                    </button>
-                    <p class="text-xs text-gray-500 text-center">تكلفة الحملة: 10 توكين</p>
-                </div>
+            <div class="md:hidden h-16 bg-[#1e293b] border-t border-slate-700 flex justify-around items-center px-2">
+                <button onclick="switchTab('dashboard')" class="flex flex-col items-center text-blue-500"><i class="fa-solid fa-chart-pie text-xl"></i><span class="text-[10px]">الرئيسية</span></button>
+                <button onclick="switchTab('leads')" class="flex flex-col items-center text-slate-400"><i class="fa-solid fa-users text-xl"></i><span class="text-[10px]">العملاء</span></button>
+                <button onclick="switchTab('chat')" class="flex flex-col items-center text-slate-400"><i class="fa-solid fa-robot text-xl"></i><span class="text-[10px]">الذكاء</span></button>
             </div>
 
         </main>
-        
-        <div class="md:hidden fixed bottom-0 w-full bg-card border-t border-gray-800 flex justify-around p-3 z-40">
-            <button onclick="showTab('dashboard')" class="text-gray-400 hover:text-white flex flex-col items-center"><i class="fa-solid fa-home mb-1"></i><span class="text-xs">الرئيسية</span></button>
-            <button onclick="showTab('chat')" class="text-accent hover:text-white flex flex-col items-center"><i class="fa-solid fa-robot mb-1"></i><span class="text-xs">الذكاء</span></button>
-            <button onclick="showTab('campaigns')" class="text-gray-400 hover:text-white flex flex-col items-center"><i class="fa-solid fa-bullhorn mb-1"></i><span class="text-xs">حملات</span></button>
-        </div>
-
     </div>
 
     <script>
-        const API_URL = ""; 
+        const API_URL = ""; // نفس السيرفر
         let currentUserId = null;
 
-        // 1. نظام التبويبات (Tabs)
-        function showTab(tabName) {
-            // اخفاء الكل
-            ['dashboard', 'chat', 'campaigns'].forEach(t => {
-                document.getElementById(`view-${t}`).classList.add('hidden');
-            });
-            // إظهار المطلوب
-            document.getElementById(`view-${tabName}`).classList.remove('hidden');
-            
-            // تلوين الزرار في القائمة الجانبية (للكمبيوتر)
-            document.querySelectorAll('.sidebar-link').forEach(el => el.classList.remove('active'));
-            // (بسيط: بنعتمد على ترتيب العناصر أو الـ onclick، هنا للتسهيل مش هنعقدها)
-        }
-
-        // 2. تسجيل الدخول
+        // 1. تسجيل الدخول
         async function login() {
             const email = document.getElementById('emailInput').value;
             const name = document.getElementById('nameInput').value;
             const msg = document.getElementById('loginMsg');
             
-            if(!email || !name) { msg.innerText = "اكتب بياناتك يا هندسة!"; return; }
+            if(!email || !name) { msg.innerText = "اكتب بياناتك الأول"; return; }
             msg.innerText = "جاري الاتصال..."; msg.style.color = "#fbbf24";
 
             try {
@@ -217,54 +243,60 @@
                 });
 
                 if(res.ok || res.status === 400) {
-                    // محاكاة نجاح الدخول
-                    const data = res.ok ? await res.json() : {id: 1, wallet_balance: 50, full_name: name}; 
+                    const data = res.ok ? await res.json() : {id: 1, full_name: name, wallet_balance: 50};
                     currentUserId = data.id || 1;
                     
                     // تحديث الواجهة
                     document.getElementById('userNameDisplay').innerText = data.full_name || name;
-                    document.getElementById('userAvatar').innerText = (data.full_name || name)[0].toUpperCase();
-                    updateUIBalance(data.wallet_balance || 50);
+                    document.getElementById('userInitial').innerText = (data.full_name || name)[0].toUpperCase();
+                    updateBalance(data.wallet_balance || 50);
 
-                    // إظهار التطبيق
-                    document.getElementById('loginScreen').style.display = 'none';
+                    // الدخول
+                    document.getElementById('loginScreen').classList.add('hidden');
                     document.getElementById('mainApp').classList.remove('hidden');
-                    
-                    // رسم الشارت
-                    initChart();
                 } else {
                     msg.innerText = "خطأ في السيرفر"; msg.style.color = "red";
                 }
             } catch(e) {
-                msg.innerText = "فشل الاتصال! تأكد من النت."; msg.style.color = "red";
+                msg.innerText = "فشل الاتصال"; msg.style.color = "red";
             }
         }
 
-        function updateUIBalance(amount) {
-            document.getElementById('walletBalance').innerText = amount;
-            document.getElementById('mobileBalance').innerText = amount;
-            document.getElementById('dashBalance').innerText = amount;
+        function updateBalance(num) {
+            document.getElementById('walletBalance').innerText = num;
+            document.getElementById('mobileBalance').innerText = num;
+        }
+
+        // 2. التنقل بين التبويبات
+        function switchTab(tabId) {
+            // اخفاء الكل
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            // إظهار المطلوب
+            document.getElementById(`view-${tabId}`).classList.remove('hidden');
+            
+            // تحديث الأزرار (تلوين النشط)
+            // (للبساطة: تغيير اللون هنا يدوي أو ممكن نضيف كلاس active)
         }
 
         // 3. الشات
         async function sendMessage() {
             const input = document.getElementById('msgInput');
-            const text = input.value;
+            const text = input.value.trim();
+            const box = document.getElementById('chatBox');
+            
             if(!text) return;
 
-            const chatBox = document.getElementById('chatContainer');
-            
             // رسالة اليوزر
-            chatBox.innerHTML += `
-                <div class="flex justify-end">
-                    <div class="bg-gradient-to-r from-primary to-accent text-white p-4 rounded-2xl rounded-tr-none max-w-[85%] shadow-lg">
+            box.innerHTML += `
+                <div class="flex justify-end fade-in">
+                    <div class="bg-blue-600 text-white p-4 rounded-2xl rounded-tl-none max-w-[85%] shadow-lg">
                         ${text}
                     </div>
                 </div>`;
             
             input.value = "";
-            chatBox.scrollTop = chatBox.scrollHeight;
-            document.getElementById('loader').classList.remove('hidden');
+            box.scrollTop = box.scrollHeight;
+            document.getElementById('loading').classList.remove('hidden');
 
             try {
                 const res = await fetch(`${API_URL}/chat/${currentUserId}`, {
@@ -273,64 +305,45 @@
                 });
                 const data = await res.json();
                 
-                document.getElementById('loader').classList.add('hidden');
-                
+                document.getElementById('loading').classList.add('hidden');
+
                 if(res.ok) {
                     const html = marked.parse(data.response);
-                    chatBox.innerHTML += `
-                        <div class="flex justify-start">
-                            <div class="bg-card border border-gray-700 p-4 rounded-2xl rounded-tl-none max-w-[85%] text-gray-200 shadow-md">
+                    box.innerHTML += `
+                        <div class="flex justify-start fade-in">
+                            <div class="bg-slate-800 text-slate-200 p-4 rounded-2xl rounded-tr-none max-w-[85%] border border-slate-700 shadow-md prose prose-invert">
                                 ${html}
                             </div>
                         </div>`;
-                    // تحديث الرصيد بعد الخصم
-                    refreshWallet();
+                    // تحديث الرصيد لو رجع
+                    if(data.tokens_used) refreshWallet();
                 } else {
-                    chatBox.innerHTML += `<div class="text-center text-red-400 text-sm my-2">⚠️ ${data.detail}</div>`;
+                    // رسالة خطأ شيك
+                    box.innerHTML += `
+                        <div class="flex justify-center my-2 fade-in">
+                            <div class="bg-red-500/20 text-red-400 px-4 py-2 rounded-lg text-sm border border-red-500/30">
+                                <i class="fa-solid fa-circle-exclamation ml-2"></i> ${data.detail || "خطأ غير معروف"}
+                            </div>
+                        </div>`;
                 }
+
             } catch(e) {
-                document.getElementById('loader').classList.add('hidden');
-                chatBox.innerHTML += `<div class="text-center text-red-400 text-sm my-2">خطأ في الاتصال</div>`;
+                document.getElementById('loading').classList.add('hidden');
+                box.innerHTML += `<div class="text-center text-red-400 text-sm">خطأ في الاتصال بالسيرفر</div>`;
             }
-            chatBox.scrollTop = chatBox.scrollHeight;
+            box.scrollTop = box.scrollHeight;
         }
 
         async function refreshWallet() {
             try {
                 const res = await fetch(`${API_URL}/users/${currentUserId}`);
                 const data = await res.json();
-                updateUIBalance(data.wallet_balance);
+                updateBalance(data.wallet_balance);
             } catch(e) {}
         }
-
-        // 4. رسم بياني وهمي (للشكل الجمالي)
-        function initChart() {
-            const ctx = document.getElementById('myChart').getContext('2d');
-            new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: ['السبت', 'الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس'],
-                    datasets: [{
-                        label: 'تفاعل العملاء',
-                        data: [12, 19, 3, 5, 2, 3],
-                        borderColor: '#6366f1',
-                        backgroundColor: 'rgba(99, 102, 241, 0.2)',
-                        tension: 0.4,
-                        fill: true
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: { legend: { display: false } },
-                    scales: { y: { beginAtZero: true, grid: { color: '#334155' } }, x: { grid: { display: false } } }
-                }
-            });
-        }
-
-        // انتر للإرسال
-        document.getElementById('msgInput').addEventListener('keypress', (e) => {
-            if(e.key === 'Enter') sendMessage();
-        });
+        
+        // Enter للإرسال
+        document.getElementById('msgInput').addEventListener('keypress', (e) => { if(e.key==='Enter') sendMessage() });
 
     </script>
 </body>
