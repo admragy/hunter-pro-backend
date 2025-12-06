@@ -54,6 +54,10 @@
         .bubble { max-width: 85%; padding: 12px 16px; border-radius: 16px; line-height: 1.6; font-size: 0.95rem; }
         .bubble.user { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); margin-right: auto; border-bottom-right-radius: 2px; }
         .bubble.ai { background: #1e293b; border: 1px solid rgba(255,255,255,0.1); margin-left: auto; border-bottom-left-radius: 2px; }
+        
+        /* حالة التحميل */
+        .loading-dots:after { content: '.'; animation: dots 1.5s steps(5, end) infinite; }
+        @keyframes dots { 0%, 20% { content: '.'; } 40% { content: '..'; } 60% { content: '...'; } 80%, 100% { content: ''; } }
     </style>
 </head>
 <body class="h-screen flex flex-col md:flex-row overflow-hidden">
@@ -166,9 +170,11 @@
 
                 <div class="glass rounded-2xl overflow-hidden">
                     <div class="p-4 border-b border-slate-700 flex justify-between items-center">
-                        <h3 class="font-bold">آخر النشاطات</h3>
+                        <h3 class="font-bold">سجل الصيد الأخير</h3>
                     </div>
-                    <div class="p-4 text-center text-slate-500 text-sm">لا توجد نشاطات حديثة</div>
+                    <div id="hunt-history" class="p-4 space-y-2">
+                        <p class="text-center text-slate-500 text-sm">لا توجد عمليات بحث حديثة</p>
+                    </div>
                 </div>
             </div>
 
@@ -177,35 +183,34 @@
                     <div class="text-center mb-8">
                         <div class="inline-block p-4 rounded-full bg-primary/10 mb-4"><i class="fa-solid fa-crosshairs text-4xl text-primary"></i></div>
                         <h2 class="text-2xl font-bold mb-2">محرك صيد العملاء</h2>
-                        <p class="text-slate-400 text-sm">ابحث عن شركات، أرقام، وعناوين حقيقية باستخدام الذكاء الاصطناعي</p>
+                        <p class="text-slate-400 text-sm">ابحث عن شركات، أرقام، وعناوين حقيقية باستخدام محرك مزدوج</p>
                     </div>
 
                     <div class="glass p-6 rounded-2xl border border-primary/30 shadow-lg shadow-primary/10 mb-8">
                         <div class="flex gap-2">
-                            <input type="text" id="hunt-input" placeholder="مثال: شركات تسويق عقاري في التجمع الخامس..." class="flex-1 bg-dark border border-slate-600 rounded-xl px-4 py-3 outline-none focus:border-primary transition">
+                            <input type="text" id="hunt-input" placeholder="مثال: شركات تسويق عقاري في التجمع الخامس..." class="flex-1 bg-dark border border-slate-600 rounded-xl px-4 py-3 outline-none focus:border-primary transition text-white">
                             <button onclick="startHunt()" id="btn-hunt" class="bg-primary hover:bg-blue-600 text-white px-6 py-3 rounded-xl font-bold transition flex items-center gap-2">
                                 <i class="fa-solid fa-search"></i> بحث
                             </button>
                         </div>
                         <div class="flex justify-between items-center mt-3 text-xs text-slate-400">
                             <span><i class="fa-solid fa-bolt text-gold"></i> التكلفة: 20 توكن</span>
-                            <span><i class="fa-solid fa-globe"></i> المصدر: بحث الويب المباشر</span>
+                            <span><i class="fa-solid fa-globe"></i> المصدر: Google Serper / DuckDuckGo</span>
                         </div>
                     </div>
 
                     <div id="hunt-loader" class="hidden text-center py-8">
                         <div class="animate-spin w-10 h-10 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
-                        <p class="text-slate-300 animate-pulse">جاري مسح الويب واستخراج البيانات...</p>
+                        <p class="text-slate-300 animate-pulse loading-dots">جاري مسح الويب واستخراج البيانات</p>
                     </div>
 
-                    <div id="hunt-results" class="space-y-3">
-                        </div>
+                    <div id="hunt-results" class="space-y-3"></div>
                 </div>
             </div>
 
             <div id="view-leads" class="view-section hidden flex-1 overflow-y-auto p-4 fade-in">
                 <div class="flex justify-between items-center mb-4">
-                    <input type="text" placeholder="بحث في العملاء..." class="bg-card border border-slate-700 rounded-lg px-4 py-2 text-sm w-64 outline-none">
+                    <input type="text" placeholder="بحث في العملاء..." class="bg-card border border-slate-700 rounded-lg px-4 py-2 text-sm w-64 outline-none text-white">
                     <button class="bg-primary text-white px-4 py-2 rounded-lg text-sm font-bold">+ إضافة</button>
                 </div>
                 <div class="grid gap-3" id="leads-list">
@@ -214,7 +219,7 @@
                             <i class="fa-solid fa-user"></i>
                         </div>
                         <div class="flex-1">
-                            <h4 class="font-bold text-white group-hover:text-primary transition">شركة الهدى للاستثمار</h4>
+                            <h4 class="font-bold text-white group-hover:text-primary transition">مثال: شركة الهدى</h4>
                             <div class="flex gap-4 text-xs text-slate-400 mt-1">
                                 <span><i class="fa-solid fa-phone"></i> 01092345678</span>
                                 <span><i class="fa-solid fa-location-dot"></i> القاهرة</span>
@@ -266,20 +271,16 @@
 
         // 1. التوجيه (Navigation)
         function nav(viewId) {
-            // اخفاء كل السكاشن
             document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
-            // اظهار المطلوب
             document.getElementById(`view-${viewId}`).classList.remove('hidden');
-            // تحديث العنوان
+            
             const titles = {'dashboard': 'لوحة التحكم', 'hunter': 'صيد العملاء', 'leads': 'قائمة العملاء', 'chat': 'المحاور الذكي', 'campaigns': 'الحملات'};
             document.getElementById('page-title').innerText = titles[viewId];
             
-            // قفل القائمة في الموبايل
             if(window.innerWidth < 768) toggleSidebar(false);
             
-            // تلوين الزرار
-            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active', 'bg-primary/10', 'text-primary'));
-            // (ممكن نضيف لوجيك التلوين هنا لو محتاج)
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active', 'bg-slate-700', 'text-white'));
+            // (سيتم تفعيل الزر النشط بناءً على الـ onclick)
         }
 
         function toggleSidebar(forceState) {
@@ -314,9 +315,6 @@
 
                 if(res.ok || res.status === 400) {
                     const data = res.ok ? await res.json() : {id: 1, full_name: name, wallet_balance: 50}; 
-                    // (في حالة 400، بنفترض ان اليوزر موجود وبنكمل ببيانات وهمية للتسهيل لو الباك اند مرجعش الداتا)
-                    // الأفضل الباك اند يرجع الداتا حتى لو موجود، وده اللي عملناه في main.py
-                    
                     currentUser = data;
                     initApp(data);
                 } else {
@@ -367,6 +365,11 @@
 
                 if(res.ok) {
                     updateBalance(data.new_balance);
+                    
+                    // إضافة للسجل
+                    const historyDiv = document.getElementById('hunt-history');
+                    historyDiv.innerHTML = `<div class="flex justify-between items-center bg-slate-800 p-2 rounded text-sm mb-2"><span>${query}</span><span class="text-green-400">${data.results.length} نتيجة</span></div>` + historyDiv.innerHTML;
+
                     if(data.results.length === 0) {
                         resultsDiv.innerHTML = '<div class="text-center text-slate-500">لم يتم العثور على نتائج.</div>';
                         return;
@@ -377,9 +380,9 @@
                         const html = `
                         <div class="glass p-4 rounded-xl flex justify-between items-center fade-in">
                             <div>
-                                <h4 class="font-bold text-white">${lead.title}</h4>
-                                <div class="text-sm text-slate-400 mt-1"><i class="fa-solid fa-phone text-primary ml-1"></i> ${lead.phone}</div>
-                                <div class="text-xs text-slate-500 mt-1"><i class="fa-solid fa-location-dot ml-1"></i> ${lead.address}</div>
+                                <h4 class="font-bold text-white">${lead.title || 'بدون اسم'}</h4>
+                                <div class="text-sm text-slate-400 mt-1"><i class="fa-solid fa-phone text-primary ml-1"></i> ${lead.phone || 'غير متوفر'}</div>
+                                <div class="text-xs text-slate-500 mt-1"><i class="fa-solid fa-location-dot ml-1"></i> ${lead.address || 'غير محدد'}</div>
                             </div>
                             <button class="w-10 h-10 rounded-lg bg-green-500/20 text-green-400 hover:bg-green-500 hover:text-white transition flex items-center justify-center">
                                 <i class="fa-solid fa-check"></i>
@@ -401,7 +404,7 @@
         async function sendChat() {
             const input = document.getElementById('chat-input');
             const txt = input.value.trim();
-            const box = document.getElementById('chat-box'); // تعديل: استخدمنا ID chat-box
+            const box = document.getElementById('chat-box');
             
             if(!txt) return;
 
