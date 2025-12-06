@@ -1,23 +1,23 @@
 from fastapi import FastAPI, Depends, HTTPException, status
+from fastapi.responses import HTMLResponse
 from sqlalchemy.orm import Session
 from typing import List, Optional
 import models, schemas, database
 from database import engine, get_db
 import google.generativeai as genai
 import os
-from datetime import datetime
 
-# 1. إعداد الجداول في الداتا بيز
+# --- 1. إعداد الجداول والداتا بيز ---
 models.Base.metadata.create_all(bind=engine)
 
-# 2. إعداد مفتاح جوجل (Gemini)
+# --- 2. إعداد مفتاح جوجل (Gemini) ---
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 if not GOOGLE_API_KEY:
-    print("Warning: GOOGLE_API_KEY is missing! AI features will not work.")
+    print("⚠️ تحذير: مفتاح GOOGLE_API_KEY غير موجود! الذكاء الاصطناعي لن يعمل.")
 else:
     genai.configure(api_key=GOOGLE_API_KEY)
 
-# إعدادات الموديل (سريع ومجاني)
+# إعدادات الموديل (لتحسين دقة الردود)
 generation_config = {
   "temperature": 0.7,
   "top_p": 1,
@@ -27,27 +27,40 @@ generation_config = {
 
 app = FastAPI(title="Hunter Pro CRM - AI Backend")
 
-# --- Helper Functions ---
+# --- دالة مساعدة لخصم الرصيد ---
 def check_balance_and_deduct(user_id: int, cost: int, db: Session):
-    """دالة لخصم الرصيد والتأكد من وجوده"""
     user = db.query(models.User).filter(models.User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="المستخدم غير موجود")
     
     if user.wallet_balance < cost:
-        raise HTTPException(status_code=402, detail=f"عفواً، رصيدك ({user.wallet_balance}) لا يكفي لإتمام العملية. التكلفة: {cost}")
+        raise HTTPException(status_code=402, detail=f"عفواً، رصيدك ({user.wallet_balance}) لا يكفي. التكلفة: {cost} نقطة")
     
     user.wallet_balance -= cost
     return user
 
-# --- 1. بوابات المستخدمين (Users) ---
+# ==========================
+#      بوابات التطبيق
+# ==========================
+
+# 1. الصفحة الرئيسية (بتعرض التطبيق)
+@app.get("/", response_class=HTMLResponse)
+def read_root():
+    # بنقرأ ملف الواجهة ونعرضه
+    try:
+        with open("index.html", "r", encoding="utf-8") as f:
+            return f.read()
+    except FileNotFoundError:
+        return "<h1>خطأ: ملف index.html غير موجود في السيرفر! تأكد من رفعه على GitHub.</h1>"
+
+# 2. إنشاء مستخدم جديد
 @app.post("/users/", response_model=schemas.UserResponse)
 def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
     db_user = db.query(models.User).filter(models.User.email == user.email).first()
     if db_user:
-        raise HTTPException(status_code=400, detail="البريد الإلكتروني مسجل بالفعل")
+        # لو المستخدم موجود، بنرجعه هو هو عشان التطبيق يشتغل (تسهيلاً للدخول)
+        return db_user
     
-    # تشفير وهمي (للتجربة)
     fake_hashed_password = user.password + "secret"
     new_user = models.User(
         email=user.email, 
@@ -60,6 +73,7 @@ def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
     db.refresh(new_user)
     return new_user
 
+# 3. جلب بيانات المستخدم (عشان تحديث المحفظة)
 @app.get("/users/{user_id}", response_model=schemas.UserResponse)
 def get_user_profile(user_id: int, db: Session = Depends(get_db)):
     user = db.query(models.User).filter(models.User.id == user_id).first()
@@ -67,32 +81,31 @@ def get_user_profile(user_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="User not found")
     return user
 
-# --- 2. المحاور الذكي (AI Chat & Coding) ---
+# 4. الشات الذكي (Gemini)
 @app.post("/chat/{user_id}", response_model=schemas.ChatResponse)
 def chat_with_gemini(user_id: int, request: schemas.ChatRequest, db: Session = Depends(get_db)):
-    cost = 2 # تكلفة الشات العادي
-    
-    # خصم الرصيد
+    cost = 2 # تكلفة الرسالة
     user = check_balance_and_deduct(user_id, cost, db)
     
     try:
-        # استدعاء Gemini
+        # تجهيز الموديل
         model = genai.GenerativeModel('gemini-1.5-flash')
         
-        # تجهيز "برومبت" عشان يفهم إنه مساعد مبرمج ومسوق
+        # تعليمات السيستم (عشان يعرف إنه شغال في CRM)
         system_instruction = "أنت مساعد ذكي لنظام Hunter Pro CRM. تتحدث العربية وتجيد كتابة الأكواد البرمجية والتسويق."
         full_prompt = f"{system_instruction}\nسؤال المستخدم: {request.message}"
         
+        # طلب الرد من جوجل
         response = model.generate_content(full_prompt, generation_config=generation_config)
         ai_reply = response.text
 
-        # تسجيل المعاملة
+        # حفظ العملية في السجل (Transactions)
         transaction = models.WalletTransaction(
             user_id=user.id, action_type="AI Chat", amount=-cost, description="Chat Message"
         )
         db.add(transaction)
         
-        # حفظ الشات
+        # حفظ الرسائل في الشات (History)
         chat_msg = models.ChatMessage(user_id=user.id, role="user", content=request.message)
         ai_msg = models.ChatMessage(user_id=user.id, role="assistant", content=ai_reply)
         db.add(chat_msg)
@@ -103,13 +116,13 @@ def chat_with_gemini(user_id: int, request: schemas.ChatRequest, db: Session = D
         return {"response": ai_reply, "tokens_used": cost}
         
     except Exception as e:
-        db.rollback() # إلغاء الخصم لو حصل خطأ
-        raise HTTPException(status_code=500, detail=str(e))
+        db.rollback() # نلغي الخصم لو حصلت مشكلة
+        raise HTTPException(status_code=500, detail=f"خطأ في الاتصال بالذكاء الاصطناعي: {str(e)}")
 
-# --- 3. صانع الحملات (Campaigns Generator) ---
+# 5. صانع الحملات الإعلانية
 @app.post("/campaigns/generate/{user_id}", response_model=schemas.CampaignResponse)
 def generate_campaign_content(user_id: int, campaign_req: schemas.CampaignCreate, db: Session = Depends(get_db)):
-    cost = 10 # تكلفة الحملة غالية شوية
+    cost = 10 # تكلفة الحملة
     user = check_balance_and_deduct(user_id, cost, db)
     
     try:
@@ -125,15 +138,14 @@ def generate_campaign_content(user_id: int, campaign_req: schemas.CampaignCreate
         response = model.generate_content(prompt)
         ai_content = response.text
         
-        # حفظ الحملة في الداتا بيز
+        # حفظ الحملة
         new_campaign = models.Campaign(
             user_id=user.id,
             name=campaign_req.name,
-            message_body=ai_content, # المحتوى اللي الـ AI كتبه
+            message_body=ai_content,
             status="draft"
         )
         
-        # تسجيل المعاملة
         transaction = models.WalletTransaction(
             user_id=user.id, action_type="Campaign Gen", amount=-cost, description=f"Campaign: {campaign_req.name}"
         )
@@ -148,7 +160,7 @@ def generate_campaign_content(user_id: int, campaign_req: schemas.CampaignCreate
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-# --- 4. العملاء والفيدباك (CRM Core) ---
+# 6. إضافة عملاء (Leads)
 @app.post("/leads/{user_id}", response_model=schemas.LeadResponse)
 def add_lead(user_id: int, lead: schemas.LeadCreate, db: Session = Depends(get_db)):
     new_lead = models.Lead(**lead.dict(), user_id=user_id)
@@ -157,15 +169,7 @@ def add_lead(user_id: int, lead: schemas.LeadCreate, db: Session = Depends(get_d
     db.refresh(new_lead)
     return new_lead
 
-@app.post("/leads/{lead_id}/feedback")
-def add_customer_feedback(lead_id: int, feedback: schemas.FeedbackCreate, db: Session = Depends(get_db)):
-    # ممكن هنا نستخدم AI يحلل هل الفيدباك إيجابي ولا سلبي
-    new_feedback = models.CustomerFeedback(**feedback.dict(), lead_id=lead_id)
-    db.add(new_feedback)
-    db.commit()
-    return {"message": "تم حفظ التقييم بنجاح"}
-
-# --- 5. مشاركة البيانات (Data Share) ---
+# 7. مشاركة البيانات (Data Share)
 @app.post("/share/{user_id}", response_model=schemas.DataShareResponse)
 def create_share_link(user_id: int, share: schemas.DataShareCreate, db: Session = Depends(get_db)):
     new_share = models.DataShare(**share.dict(), user_id=user_id)
@@ -173,15 +177,5 @@ def create_share_link(user_id: int, share: schemas.DataShareCreate, db: Session 
     db.commit()
     db.refresh(new_share)
     
-    link = f"https://hunter-pro.app/view/{new_share.share_uuid}"
+    link = f"https://hunter-pro-backend.fly.dev/view/{new_share.share_uuid}"
     return {"share_uuid": new_share.share_uuid, "link_url": link}
-
-# رسالة الصفحة الرئيسية
-@app.get("/")
-def read_root():
-    return {
-        "system": "Hunter Pro CRM 🚀",
-        "status": "Online",
-        "ai_engine": "Google Gemini 1.5 Flash",
-        "database": "Connected to Supabase"
-    }
